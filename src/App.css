@@ -1,0 +1,77 @@
+@font-face {
+    font-family: victorMono;
+    src: url(./assets/victorMono.ttf);
+}
+*{
+    margin: 0;
+    padding: 0;
+}
+
+#main{
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+#heading{
+    font-family:victorMono;
+    font-size:6vw;
+    color:black;
+    transition: all ease 0.5s;
+}
+
+#filename{
+    font-family: victorMono;
+    font-size: 2vh;
+    text-overflow: ellipsis;
+    color:black;
+    transition: all ease 0.5s;
+}
+
+#homeScreenBtn{
+    margin-top: 30px;
+    padding: 15px;
+    font-size: 2.5vh;
+    font-family: victorMono;
+    cursor: pointer;
+    background-color: whitesmoke;
+    border: none;
+    border-radius: 20px;
+    transition: all linear 0.5s;
+    &:hover{
+        border-radius: 8px;
+        background-color: black;
+        color:whitesmoke
+    }
+
+    color:inherit;
+    text-decoration: none;
+}
+
+#content{
+    width: 100%;
+    padding-top: 35px;
+    padding-bottom: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;   
+    background-color: whitesmoke;
+}
+
+#contentHeading{
+    margin-top: 15px;
+    font-family: victorMono;
+    font-weight: 500;
+    font-size: 20px;
+}
+
+.extractedText{
+    font-family: victorMono;
+    font-size: 2vh;
+}
