@@ -7,7 +7,7 @@ const manifestForPlugin ={
   registerType : 'prompt',
   includeAssets : ['websiteLogo.png'],
   manifest:{
-    name : 'Cards Extractor',
+    name : 'Cards Text Extractor',
     short_name: 'CardEx',
     description: 'This app is useful in extracting text information from images and exporting details in excel format',
     orientation: 'portrait',
