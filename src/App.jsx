@@ -19,17 +19,27 @@ const App = () => {
   }
 
   const extractText=async()=>{
-    const worker = await createWorker({
-      logger: m => console.log(m)
-    });
-    (async () => {
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
-      const { data: { text } } = await worker.recognize(photo);
-      setExtractedText(text);
-      await worker.terminate();
-    })(); 
-
+    
+    const loadingToast = toast.loading("Loading...");
+    try {
+      const worker = await createWorker({
+        logger: m => console.log(m)
+       });
+      (async () => {
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        const { data: { text } } = await worker.recognize(photo);
+        setExtractedText(text);
+        await worker.terminate();
+      })();
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error(error);
+    } 
+    finally{
+      toast.dismiss(loadingToast);
+    }
+    
   }
 
   const copyToClipboard = ()=>{
@@ -42,7 +52,10 @@ const App = () => {
   }
   return (
     <div id="main" >
-      <img src={logo} id='logo' />
+      <img src={logo} id='logo'   onClick={()=>{
+        setExtractedText('');
+        setPhoto();
+      }} />
       {extractedText.length > 0
         ?<>
           {extractedText.split('\n').map((d,i)=>(
@@ -64,7 +77,7 @@ const App = () => {
             photo 
             ?
             <>
-              <button id='homeScreenBtn' onClick={()=>extractText()} >Extract Text</button>
+              <button id='homeScreenBtn' onClick={()=>{extractText()}} >Extract Text</button>
               <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Select Another Image</button>
             </>
             :
