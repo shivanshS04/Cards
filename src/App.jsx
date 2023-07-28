@@ -5,6 +5,7 @@ import Sheet from 'react-modal-sheet'
 import toast,{ Toaster } from 'react-hot-toast';
 import {createWorker} from 'tesseract.js';
 import { CSVLink } from 'react-csv';
+import logo from './assets/logo.png'
 
 const App = () => {
   const fileUploader = useRef(null)
@@ -41,6 +42,7 @@ const App = () => {
   }
   return (
     <div id="main" >
+      <img src={logo} id='logo' />
       {extractedText.length > 0
         ?<>
           {extractedText.split('\n').map((d,i)=>(

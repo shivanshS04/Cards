@@ -7,6 +7,15 @@
     padding: 0;
 }
 
+#logo{
+    width: 40px;
+    position:fixed;
+    top: 0;
+    left: 0;
+    margin: 20px;
+    z-index: 5;
+}
+
 #main{
     width: 100%;
     min-height: 100vh;
