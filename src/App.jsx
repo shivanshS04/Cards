@@ -9,10 +9,14 @@ import logo from './assets/logo.png'
 
 const App = () => {
   const fileUploader = useRef(null)
+  const [temp, setTemp] = useState('');
+  const [cardHasBack, setCardHasBack] = useState(false)
   const [photo, setPhoto] = useState();
   const [showBottomSheet, setShowBottomSheet] = useState(false)
   const [extractedText, setExtractedText] = useState('')
+  const [language, setLanguage] = useState('eng')
   const getfile=(photo)=>{
+    setTemp(extractedText);
     setExtractedText('');
     setPhoto(photo);
     setShowBottomSheet(false)
@@ -20,26 +24,35 @@ const App = () => {
 
   const extractText=async()=>{
     
-    const loadingToast = toast.loading("Loading...");
+    const loading = toast.loading(`Loading..`);
     try {
+      
       const worker = await createWorker({
-        logger: m => console.log(m)
+        logger: m => {
+          console.log(m);
+          if(m.progress ==1 && m.status=='recognizing text' ){
+            toast.dismiss(loading);
+          }
+        }
        });
-      (async () => {
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
+       (async () => {
+        await worker.loadLanguage(language);
+        await worker.initialize(language);
         const { data: { text } } = await worker.recognize(photo);
-        setExtractedText(text);
+        if(cardHasBack){
+          setExtractedText(temp+text);
+        }
+        else{
+          setExtractedText(text);
+        }
+        setTemp(extractedText)
         await worker.terminate();
       })();
     } catch (error) {
-      toast.dismiss(loadingToast);
+      toast.dismiss(loading)
       toast.error(error);
     } 
-    finally{
-      toast.dismiss(loadingToast);
-    }
-    
+     
   }
 
   const copyToClipboard = ()=>{
@@ -64,6 +77,10 @@ const App = () => {
           
           <button id='homeScreenBtn' onClick={()=>copyToClipboard()} >Copy Text</button>
           <CSVLink id='homeScreenBtn' filename='data' data={extractedText} separator='\n' >Export</CSVLink>
+          <button id='homeScreenBtn' onClick={()=>{
+            setCardHasBack(true);
+            setShowBottomSheet(true);
+          }} >Select Other Side</button>
           <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Select Another Image</button>
           
         </>
@@ -77,6 +94,10 @@ const App = () => {
             photo 
             ?
             <>
+              <select name="language" onChange={(e)=>setLanguage(e.target.value)}  id="langBtn">
+                <option value="eng">English</option>
+                <option value="hin">Hindi</option>
+              </select>
               <button id='homeScreenBtn' onClick={()=>{extractText()}} >Extract Text</button>
               <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Select Another Image</button>
             </>
@@ -95,7 +116,7 @@ const App = () => {
           <Sheet.Content id='content' onClick={()=>fileUploader.current.click()} style={{cursor:'pointer'}} >
             <FiImage size={60} color='gray' />
             <h1 id='contentHeading'>Upload photo</h1>
-            <input type="file" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" id="file" ref={fileUploader} onChange={(e)=>getfile(e.target.files[0])} style={{display: "none"}}/>
+            <input type="file" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*;capture=camera" id="file" ref={fileUploader} onChange={(e)=>getfile(e.target.files[0])} style={{display: "none"}}/>
           </Sheet.Content>
         </Sheet.Container>
         <Sheet.Backdrop />
