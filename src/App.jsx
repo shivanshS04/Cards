@@ -8,18 +8,20 @@ import { CSVLink } from 'react-csv';
 import logo from './assets/logo.png'
 
 const App = () => {
-  const fileUploader = useRef(null)
+  const photoUploader = useRef(null)
+  const csvUploader = useRef(null)
   const [temp, setTemp] = useState('');
   const [cardHasBack, setCardHasBack] = useState(false)
   const [photo, setPhoto] = useState();
-  const [showBottomSheet, setShowBottomSheet] = useState(false)
+  const [existingFile, setExistingFile] = useState()
+  const [showCSVBottomSheet, setShowCSVBottomSheet] = useState(false)
+  const [showPhotoBottomSheet, setShowPhotoBottomSheet] = useState(false)
   const [extractedText, setExtractedText] = useState('')
-  const [language, setLanguage] = useState('eng')
   const getfile=(photo)=>{
     setTemp(extractedText);
     setExtractedText('');
     setPhoto(photo);
-    setShowBottomSheet(false)
+    setShowPhotoBottomSheet(false)
   }
 
   const extractText=async()=>{
@@ -36,8 +38,8 @@ const App = () => {
         }
        });
        (async () => {
-        await worker.loadLanguage(language);
-        await worker.initialize(language);
+        await worker.loadLanguage('eng+hin');
+        await worker.initialize('eng+hin');
         const { data: { text } } = await worker.recognize(photo);
         if(cardHasBack){
           setExtractedText(temp+text);
@@ -76,13 +78,43 @@ const App = () => {
           ))}
           
           <button id='homeScreenBtn' onClick={()=>copyToClipboard()} >Copy Text</button>
-          <CSVLink id='homeScreenBtn' filename='data' data={extractedText} separator='\n' >Export</CSVLink>
+          
+          <button id='homeScreenBtn' onClick={()=>setShowCSVBottomSheet(true)} >Export</button>
+          
           <button id='homeScreenBtn' onClick={()=>{
             setCardHasBack(true);
-            setShowBottomSheet(true);
+            setShowPhotoBottomSheet(true);
           }} >Select Other Side</button>
-          <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Select Another Image</button>
+          <button id='homeScreenBtn' onClick={()=>setShowPhotoBottomSheet(true)} >Select Another Image</button>
           
+          
+          <Sheet id='bottomSheetContainer' isOpen={showCSVBottomSheet} onClose={() => setShowCSVBottomSheet(false)} detent="content-height" >
+            <Sheet.Container style={{
+              borderTopRightRadius:25,
+              borderTopLeftRadius:25
+            }}>
+              <Sheet.Header />
+              <Sheet.Content id='content' style={{
+                backgroundColor:'white'
+              }} >
+                <CSVLink id='homeScreenBtn' filename='data' data={extractedText} separator='\n' >New File</CSVLink>
+                <button id='homeScreenBtn' onClick={()=> {csvUploader.current.click()} } >Select Existing File</button>
+
+                {
+                  existingFile &&
+                  <button id='homeScreenBtn' onClick={()=>{
+                    
+                  }} >Export</button>
+
+                }
+
+                <input type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" id="file" ref={csvUploader} onChange={(e)=>{
+                  setExistingFile(e.target.files[0])
+                }} style={{display: "none"}}/>
+              </Sheet.Content>
+            </Sheet.Container>
+            <Sheet.Backdrop />
+          </Sheet>
         </>
         :<>
           {
@@ -94,29 +126,25 @@ const App = () => {
             photo 
             ?
             <>
-              <select name="language" onChange={(e)=>setLanguage(e.target.value)}  id="langBtn">
-                <option value="eng">English</option>
-                <option value="hin">Hindi</option>
-              </select>
               <button id='homeScreenBtn' onClick={()=>{extractText()}} >Extract Text</button>
-              <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Select Another Image</button>
+              <button id='homeScreenBtn' onClick={()=>setShowPhotoBottomSheet(true)} >Select Another Image</button>
             </>
             :
-            <button id='homeScreenBtn' onClick={()=>setShowBottomSheet(true)} >Get Started</button>
+            <button id='homeScreenBtn' onClick={()=>setShowPhotoBottomSheet(true)} >Get Started</button>
 
           }
         </>
       }
-      <Sheet id='bottomSheetContainer' isOpen={showBottomSheet} onClose={() => setShowBottomSheet(false)} detent="content-height" >
+      <Sheet id='bottomSheetContainer' isOpen={showPhotoBottomSheet} onClose={() => setShowPhotoBottomSheet(false)} detent="content-height" >
         <Sheet.Container style={{
           borderTopRightRadius:25,
           borderTopLeftRadius:25
         }}>
           <Sheet.Header />
-          <Sheet.Content id='content' onClick={()=>fileUploader.current.click()} style={{cursor:'pointer'}} >
+          <Sheet.Content id='content' onClick={()=>photoUploader.current.click()} style={{cursor:'pointer'}} >
             <FiImage size={60} color='gray' />
             <h1 id='contentHeading'>Upload photo</h1>
-            <input type="file" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*;capture=camera" id="file" ref={fileUploader} onChange={(e)=>getfile(e.target.files[0])} style={{display: "none"}}/>
+            <input type="file" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*;capture=camera" id="file" ref={photoUploader} onChange={(e)=>getfile(e.target.files[0])} style={{display: "none"}}/>
           </Sheet.Content>
         </Sheet.Container>
         <Sheet.Backdrop />
