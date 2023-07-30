@@ -6,6 +6,8 @@ import toast,{ Toaster } from 'react-hot-toast';
 import {createWorker} from 'tesseract.js';
 import { CSVLink } from 'react-csv';
 import logo from './assets/logo.png'
+import Papa from 'papaparse'
+
 
 const App = () => {
   const photoUploader = useRef(null)
@@ -21,6 +23,7 @@ const App = () => {
     setTemp(extractedText);
     setExtractedText('');
     setPhoto(photo);
+    setExistingFile()
     setShowPhotoBottomSheet(false)
   }
 
@@ -31,7 +34,6 @@ const App = () => {
       
       const worker = await createWorker({
         logger: m => {
-          console.log(m);
           if(m.progress ==1 && m.status=='recognizing text' ){
             toast.dismiss(loading);
           }
@@ -65,6 +67,67 @@ const App = () => {
       }
     })
   }
+
+  const generateCSVData=()=>{
+
+    const phoneNoValidator = /(\+91(-)?)?( )?(0)?[0-9\-]{8,12}/g
+    const emailValidator = /[A-Za-z._0-9]{3,}@[A-Za-z]{3,}[.]{1}[A-Za-z.]{2,}/g
+    const nameValidator = /(Mr\. )?[A-Za-z.\u0900-\u097F]{3,}( )?[A-Za-z\u0900-\u097F]{3,}/g
+  
+    const name = extractedText.match(nameValidator)
+    const phone_no =  extractedText.match(phoneNoValidator)
+    const email_id = emailValidator.exec(extractedText);
+    
+    const data ={
+      name:'',
+      phone_no:'',
+      email_id: ''
+    }
+
+    if(name){
+      data.name = name.join(',');
+    }
+    if(email_id){
+      data.email_id = email_id.join(',')
+    }
+    if(phone_no){
+      data.phone_no = phone_no.join(',');
+    }
+    return  data;
+
+  }
+
+  
+
+  const exportCSV=()=>{
+    var jsonData =[];
+    if(existingFile){
+      Papa.parse(existingFile , {
+            header:true,
+            complete:function(results) {
+              jsonData = results.data;
+            }
+          })      
+    }
+    jsonData.push(generateCSVData())
+    console.log(jsonData)
+    var csv =  Papa.unparse(jsonData)    
+    console.log(csv)
+
+    var csvData = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    var csvURL =  null;
+    if (navigator.msSaveBlob)
+    {
+        csvURL = navigator.msSaveBlob(csvData, 'download.csv');
+    }
+    else
+    {
+        csvURL = window.URL.createObjectURL(csvData);
+    }
+
+    return csvURL;
+  }
+
   return (
     <div id="main" >
       <img src={logo} id='logo'   onClick={()=>{
@@ -97,14 +160,12 @@ const App = () => {
               <Sheet.Content id='content' style={{
                 backgroundColor:'white'
               }} >
-                <CSVLink id='homeScreenBtn' filename='data' data={extractedText} separator='\n' >New File</CSVLink>
+                <a href={exportCSV()} id="homeScreenBtn"  >NewFile</a>
                 <button id='homeScreenBtn' onClick={()=> {csvUploader.current.click()} } >Select Existing File</button>
 
                 {
                   existingFile &&
-                  <button id='homeScreenBtn' onClick={()=>{
-                    
-                  }} >Export</button>
+                  <a href={exportCSV()} id="homeScreenBtn">Export</a>
 
                 }
 
