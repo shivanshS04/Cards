@@ -97,20 +97,7 @@ const App = () => {
 
   }
 
-  
-
-  const exportCSV=()=>{
-    var jsonData =[];
-    if(existingFile){
-      Papa.parse(existingFile , {
-            header:true,
-            complete:function(results) {
-              jsonData = results.data;
-            }
-          })      
-    }
-    jsonData.push(generateCSVData())
-    console.log(jsonData)
+  const createCSVFile=(jsonData)=>{
     var csv =  Papa.unparse(jsonData)    
     console.log(csv)
 
@@ -118,14 +105,31 @@ const App = () => {
     var csvURL =  null;
     if (navigator.msSaveBlob)
     {
-        csvURL = navigator.msSaveBlob(csvData, 'download.csv');
+        csvURL = (navigator.msSaveBlob(csvData, 'download.csv'));
     }
     else
     {
-        csvURL = window.URL.createObjectURL(csvData);
+        csvURL = (window.URL.createObjectURL(csvData));
     }
 
-    return csvURL;
+    var link = document.createElement("a");
+    link.download = 'data.csv';
+    link.href = csvURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  const getFileData=async()=>{
+    Papa.parse(existingFile , {
+      header:true,
+      complete:function(results) {
+        var jsonData = results.data;
+        jsonData.push(generateCSVData())
+        createCSVFile(jsonData)
+      },
+    })   
+    
   }
 
   return (
@@ -160,12 +164,14 @@ const App = () => {
               <Sheet.Content id='content' style={{
                 backgroundColor:'white'
               }} >
-                <a href={exportCSV()} id="homeScreenBtn"  >NewFile</a>
+                <button id="homeScreenBtn"  onClick={()=>{
+                  createCSVFile([generateCSVData()])
+                }} >NewFile</button>
                 <button id='homeScreenBtn' onClick={()=> {csvUploader.current.click()} } >Select Existing File</button>
 
                 {
                   existingFile &&
-                  <a href={exportCSV()} id="homeScreenBtn">Export</a>
+                  <button onClick={()=>getFileData()} id="homeScreenBtn">Export</button>
 
                 }
 
