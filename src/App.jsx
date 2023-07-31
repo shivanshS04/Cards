@@ -4,7 +4,7 @@ import {FiImage} from  'react-icons/fi'
 import Sheet from 'react-modal-sheet'
 import toast,{ Toaster } from 'react-hot-toast';
 import {createWorker} from 'tesseract.js';
-import { CSVLink } from 'react-csv';
+import axios from 'axios';
 import logo from './assets/logo.png'
 import Papa from 'papaparse'
 
@@ -29,7 +29,7 @@ const App = () => {
 
   const extractText=async()=>{
     
-    const loading = toast.loading(`Loading..`);
+    var loading = toast.loading(`Loading..`);
     try {
       
       const worker = await createWorker({
@@ -42,7 +42,25 @@ const App = () => {
        (async () => {
         await worker.loadLanguage('eng+hin');
         await worker.initialize('eng+hin');
-        const { data: { text } } = await worker.recognize(photo);
+        var { data: { text } } = await worker.recognize(photo);
+
+        loading =  toast.loading('Translating Text...')
+        const res = await axios.request({
+          method: 'POST',
+          url: 'https://opentranslator.p.rapidapi.com/translate',
+          headers: {
+            'content-type': 'application/json',
+            'X-RapidAPI-Key': 'f5b35f5831msha1491f7adda1bd3p1e52c7jsn9d5bf175b091',
+            'X-RapidAPI-Host': 'opentranslator.p.rapidapi.com'
+          },
+          data: {
+            text:text,
+            target: 'en'
+          }
+        }).finally(()=>toast.dismiss(loading))
+
+        text = res.data[0].result.text
+
         if(cardHasBack){
           setExtractedText(temp+text);
         }
